@@ -14,8 +14,6 @@ import argparse
 from tqdm import tqdm
 from perceptual_loss import VGGPerceptualLoss
 
-BATCH_SIZE = 32
-
 
 # symmetric patch size
 def get_random_patch(img, size):
@@ -35,6 +33,10 @@ def pre_process(img):
     img = np.transpose(img, [2, 0, 1]) # C, H, W
     img = np.expand_dims(img, 0)
     img = torch.tensor(img).float()
+
+    if torch.cuda.is_available():
+        img = img.cuda()
+
     return img
 
 
@@ -47,10 +49,9 @@ def post_process(img):
 
 
 def main():
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument('--input', help='input image path', default='image_for_patches.jpg')
-    #
-    # args = parser.parse_args()
+    gpu = torch.cuda.is_available()
+    if gpu:
+        print(torch.cuda.get_device_name(0))
 
     orig_res_np = image.imread('building.jpg')
     low_res_np = rescale(orig_res_np, 0.5, anti_aliasing=True, multichannel=True)
@@ -63,8 +64,13 @@ def main():
     low_res = pre_process(low_res_np)
 
     model = get_model()
-    optimizer = optim.Adam(model.parameters())
     criterion = VGGPerceptualLoss()
+
+    if gpu:
+        model = model.cuda()
+        criterion = criterion.cuda()
+
+    optimizer = optim.Adam(model.parameters())
 
     # training!
     for step in tqdm(range(1000)):
