@@ -87,14 +87,14 @@ def main():
 
         if step % 100 == 0:
             print(loss)
-            image.imsave('tmp\\restored_in_step_{}.jpg'.format(step), restored.detach().numpy())
+            image.imsave('tmp\\restored_in_step_{}.jpg'.format(step), restored.detach().cpu().numpy())
 
             upsampled_np = rescale(orig_res_np, 2, multichannel=True)
             image.imsave('tmp\\upsampled.jpg', upsampled_np)
             upsampled = pre_process(upsampled_np)
 
             super_resolution = model(upsampled)
-            image.imsave('tmp\\super_resolution_in_step_{}.jpg'.format(step), super_resolution.detach().numpy())
+            image.imsave('tmp\\super_resolution_in_step_{}.jpg'.format(step), super_resolution.detach().cpu().numpy())
 
 
 
